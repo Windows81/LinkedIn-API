@@ -660,8 +660,203 @@ class Linkedin(object):
 
         return results
 
+    def get_all_jobs(
+        self,
+        keywords=None,
+        companies=None,
+        experience=None,
+        job_type=None,
+        job_title=None,
+        industries=None,
+        location_name=None,
+        remote=False,
+        listed_at=None,
+        distance=None,
+        **kwargs,
+    ):
+        """Perform a LinkedIn search for jobs.
+
+        :param keywords: Search keywords (str)
+        :type keywords: str, optional
+        :param companies: A list of company URN IDs (str)
+        :type companies: list, optional
+        :param experience: A list of experience levels, one or many of "1", "2", "3", "4", "5" and "6" (internship, entry level, associate, mid-senior level, director and executive, respectively)
+        :type experience: list, optional
+        :param job_type:  A list of job types , one or many of "F", "C", "P", "T", "I", "V", "O" (full-time, contract, part-time, temporary, internship, volunteer and "other", respectively)
+        :type job_type: list, optional
+        :param job_title: A list of title URN IDs (str)
+        :type job_title: list, optional
+        :param industries: A list of industry URN IDs (str)
+        :type industries: list, optional
+        :param location_name: Name of the location to search within. Example: "Kyiv City, Ukraine"
+        :type location_name: str, optional
+        :param remote: Whether to search only for remote jobs. Defaults to False.
+        :type remote: boolean, optional
+        :param listed_at: maximum number of seconds passed since job posting. 86400 will filter job postings posted in last 24 hours.
+        :type listed_at: int/str, optional. Default value is equal to 24 hours.
+        :param distance: maximum distance from location in miles
+        :type distance: int/str, optional. If not specified, None or 0, the default value of 25 miles applied.
+        :return: List of jobs
+        :rtype: list
+        """
+        count = Linkedin._MAX_SEARCH_COUNT
+        api_limit = Linkedin._MAX_SEARCH_RESULTS
+        max_requests = Linkedin._MAX_REPEATED_REQUESTS
+        results = {}
+
+        filters = ["resultType->JOBS"]
+        if companies:
+            filters.append(f'company->{"|".join(companies)}')
+        if experience:
+            filters.append(f'experience->{"|".join(experience)}')
+        if job_type:
+            filters.append(f'jobType->{"|".join(job_type)}')
+        if job_title:
+            filters.append(f'title->{"|".join(job_title)}')
+        if industries:
+            filters.append(f'industry->{"|".join(industries)}')
+        if location_name:
+            filters.append(f"locationFallback->{location_name}")
+        if remote:
+            filters.append(f"workRemoteAllowed->{remote}")
+        if distance:
+            filters.append(f"distance->{distance}")
+        if listed_at:
+            filters.append(f"timePostedRange->r{listed_at}")
+        # add optional kwargs to a filter
+        for name, value in kwargs.items():
+            if type(value) in (list, tuple):
+                filters.append(f'{name}->{"|".join(value)}')
+            else:
+                filters.append(f"{name}->{value}")
+
+        def get_next(results_n: int, chunk_keyword=None, negate=False, sort=False):
+            nonlocal count
+            patched_filters = filters + [f'sortBy->{"DD" if sort else "R"}']
+            default_params = {
+                "decorationId": "com.linkedin.voyager.deco.jserp.WebJobSearchHitLite-14",
+                "count": count,
+                "filters": f"List({','.join(patched_filters)})",
+                "origin": "JOB_SEARCH_RESULTS_PAGE",
+                "q": "jserpFilters",
+                "start": results_n,
+                "queryContext": "List(primaryHitType->JOBS,spellCorrectionEnabled->true)",
+            }
+
+            patched_keywords = keywords
+            if chunk_keyword:
+                patched_keywords = f'{"NOT " if negate else ""}"{chunk_keyword}" AND [{keywords}]'
+
+            encoded_params = urlencode(default_params, safe='(),', quote_via=quote)
+            encoded_keywords = urlencode({'keywords': patched_keywords}, quote_via=quote)
+
+            res = self._fetch(
+                f"/search/hits?{encoded_params}&{encoded_keywords}",
+                headers={"accept": "application/vnd.linkedin.normalized+json+2.1"},
+            )
+            return res.json()
+
+        data = {}
+        try:
+            data = get_next(0)
+        except:
+            pass
+
+        elements = data.get("included", [])
+        total = data.get('data', {}).get('paging', {}).get('total')
+        if total is None:
+            print(f'Failed getting total # of elements', file=sys.stderr)
+            return list(results.values())
+        print(f'Total: {total}', file=sys.stderr)
+
+        results.update({
+            i['dashEntityUrn'].split(':')[-1]: i
+            for i in elements
+            if i["$type"] == "com.linkedin.voyager.jobs.JobPosting"
+        })
+
+        used_chunked_kwds = []
+        chunk_keyword = ''
+        negate = True
+        sort = True
+        request_count = 0
+        try:
+            while True:
+                print(f'Got {(len(results) / total) * 100:.2f}% of results', file=sys.stderr)
+                if len(results) >= total:
+                    print(f'Received all {total} elements', file=sys.stderr)
+                    break
+
+                if negate and sort:
+                    chunk_keyword = ''
+                    while len(chunk_keyword) < 3 or chunk_keyword in used_chunked_kwds:
+                        words = random.choice(list(results.values()))['title'].split(' ')
+                        chunk_keyword = random.choice(words)
+                    used_chunked_kwds.append(chunk_keyword)
+
+                if sort:
+                    negate = not negate
+
+                sort = not sort
+                print(f'{"NOT " if negate else ""}{chunk_keyword} ({"DD" if sort else "R"})', file=sys.stderr)
+
+                chunk_len = 0
+                chunk_data = get_next(chunk_len, chunk_keyword, negate)
+
+                chunk_total = chunk_data.get('data', {}).get('paging', {}).get('total')
+                if chunk_total is None:
+                    print(f'Failed getting total # of chunks', file=sys.stderr)
+                    continue
+                print(f'Chunk Total: {chunk_total}', file=sys.stderr)
+
+                if chunk_total < api_limit:
+                    sort = True
+
+                if chunk_total < 0.25 * api_limit or chunk_total > 2 * api_limit:
+                    negate = True
+                    sort = True
+                    print('Skipping chunk...', file=sys.stderr)
+                    continue
+
+                while True:
+                    elements = chunk_data.get("included", [])
+                    chunk = ({
+                        i['dashEntityUrn'].split(':')[-1]: i
+                        for i in elements
+                        if i["$type"] == "com.linkedin.voyager.jobs.JobPosting"
+                    })
+                    results.update(chunk)
+                    request_count += 1
+                    chunk_len += len(chunk)
+
+                    if request_count >= max_requests:
+                        print(f'Reached max requests limit, fetched {len(results)} out of {total}', file=sys.stderr)
+                        return list(results.values())
+
+                    if len(elements) == 0:
+                        if chunk_len == chunk_total:
+                            print(f'Received all {chunk_total} elements', file=sys.stderr)
+                        elif chunk_len == api_limit:
+                            print(f'Received API max {api_limit} elements out of {chunk_total}', file=sys.stderr)
+                        else:
+                            print(f'Something wrong, received only {chunk_len} elements out of {chunk_total}', file=sys.stderr)
+                        break
+                    try:
+                        chunk_data = get_next(chunk_len, chunk_keyword, negate, sort)
+                    except KeyboardInterrupt as e:
+                        raise e
+                    except:
+                        wait = 1
+                        chunk_data = None
+                        print(f'Received error from API, waiting {wait}s...', file=sys.stderr)
+                        sleep(wait)
+        except KeyboardInterrupt:
+            pass
+
+        return list(results.values())
+
     def get_profile_contact_info(
-        self, public_id: Optional[str] = None, urn_id: Optional[str] = None
+            self, public_id: Optional[str] = None, urn_id: Optional[str] = None
     ) -> Dict:
         """Fetch contact information for a given LinkedIn profile. Pass a [public_id] or a [urn_id].
 
