@@ -6,6 +6,7 @@ import json
 import logging
 import random
 import uuid
+import sys
 import re
 from operator import itemgetter
 from time import sleep
@@ -48,8 +49,10 @@ class Linkedin(object):
     _MAX_UPDATE_COUNT = 100  # max seems to be 100
     _MAX_SEARCH_COUNT = 49  # max seems to be 49, and min seems to be 2
     _MAX_REPEATED_REQUESTS = (
-        200  # VERY conservative max requests count to avoid rate-limit
+        500  # VERY conservative max requests count to avoid rate-limit
     )
+    _MAX_SEARCH_RESULTS = 1000  # hard limit by linkedin API
+
 
     def __init__(
         self,
@@ -62,6 +65,7 @@ class Linkedin(object):
         proxies={},
         cookies=None,
         cookies_dir: str = "",
+        pool_size=1
     ):
         """Constructor method"""
         self.client = Client(
@@ -69,6 +73,7 @@ class Linkedin(object):
             debug=debug,
             proxies=proxies,
             cookies_dir=cookies_dir,
+            pool_size=pool_size
         )
         logging.basicConfig(level=logging.DEBUG if debug else logging.INFO)
         self.logger = logger

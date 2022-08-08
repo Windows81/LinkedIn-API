@@ -1,4 +1,4 @@
-import requests
+import requests.adapters
 import logging
 from linkedin_api.cookie_repository import CookieRepository
 from bs4 import BeautifulSoup, Tag
@@ -49,9 +49,11 @@ class Client(object):
     }
 
     def __init__(
-        self, *, debug=False, refresh_cookies=False, proxies={}, cookies_dir: str = ""
+        self, *, debug=False, refresh_cookies=False, proxies={}, cookies_dir: str = "", pool_size=1
     ):
         self.session = requests.session()
+        self.adapter = requests.adapters.HTTPAdapter(pool_connections=pool_size, pool_maxsize=pool_size)
+        self.session.mount('https://', self.adapter)
         self.session.proxies.update(proxies)
         self.session.headers.update(Client.REQUEST_HEADERS)
         self.proxies = proxies
