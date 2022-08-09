@@ -70,16 +70,8 @@ And more! [Read the docs](https://linkedin-api.readthedocs.io/en/latest/api.html
 ###
 
 ```bash
-pip install linkedin-api
+pip3 install git+https://github.com/4erf/linkedin-api.git
 ```
-
-Or, for bleeding edge:
-
-```bash
-pip install git+https://github.com/tomquirk/linkedin-api.git
-```
-
-### Quick Start
 
 > [!TIP]
 > See all API methods on the [docs](https://linkedin-api.readthedocs.io/en/latest/api.html).
