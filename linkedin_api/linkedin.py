@@ -789,7 +789,7 @@ class Linkedin(object):
 
                 if negate and sort:
                     chunk_keyword = ''
-                    while len(chunk_keyword) < 3 or chunk_keyword in used_chunked_kwds:
+                    while chunk_keyword in used_chunked_kwds:
                         words = random.choice(list(results.values()))['title'].split(' ')
                         chunk_keyword = random.choice(words)
                     used_chunked_kwds.append(chunk_keyword)
@@ -812,7 +812,7 @@ class Linkedin(object):
                 if chunk_total < api_limit:
                     sort = True
 
-                if chunk_total < 0.25 * api_limit or chunk_total > 2 * api_limit:
+                if total > api_limit and (chunk_total < 0.25 * api_limit or chunk_total > 2 * api_limit):
                     negate = True
                     sort = True
                     print('Skipping chunk...', file=sys.stderr)
