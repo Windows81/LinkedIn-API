@@ -841,15 +841,16 @@ class Linkedin(object):
                         else:
                             print(f'Something wrong, received only {chunk_len} elements out of {chunk_total}', file=sys.stderr)
                         break
-                    try:
-                        chunk_data = get_next(chunk_len, chunk_keyword, negate, sort)
-                    except KeyboardInterrupt as e:
-                        raise e
-                    except:
-                        wait = 1
-                        chunk_data = None
-                        print(f'Received error from API, waiting {wait}s...', file=sys.stderr)
-                        sleep(wait)
+                    while True:
+                        try:
+                            chunk_data = get_next(chunk_len, chunk_keyword, negate, sort)
+                            break
+                        except KeyboardInterrupt as e:
+                            raise e
+                        except:
+                            wait = 1
+                            print(f'Received error from API, waiting {wait}s...', file=sys.stderr)
+                            sleep(wait)
         except KeyboardInterrupt:
             pass
 
