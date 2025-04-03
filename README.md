@@ -2,7 +2,7 @@
 
 # LinkedIn API for Python
 
-![Build](https://img.shields.io/github/actions/workflow/status/tomquirk/linkedin-api/ci.yml?label=Build&logo=github) [![Documentation](https://img.shields.io/readthedocs/linkedin-api?label=Docs)](https://linkedin-api.readthedocs.io) [![GitHub Release](https://img.shields.io/github/v/release/tomquirk/linkedin-api?label=PyPI&logo=python)](https://pypi.org/project/linkedin-api/) [![Discord](https://img.shields.io/badge/Discord-5865F2?logo=discord&logoColor=ffffff)](https://discord.gg/hdd48NEB37)
+![Build](https://img.shields.io/github/actions/workflow/status/tomquirk/linkedin-api/ci.yml?label=Build&logo=github) [![Documentation](https://img.shields.io/readthedocs/linkedin-api?label=Docs)](https://linkedin-api.readthedocs.io) [![GitHub Release](https://img.shields.io/github/v/release/tomquirk/linkedin-api?label=PyPI&logo=python)](https://pypi.org/project/linkedin-api/) [![Discord](https://img.shields.io/badge/Discord-5865F2?logo=discord&logoColor=ffffff)](https://discord.gg/BHSWgrdc)
 
 Search profiles, send messages, find jobs and more in Python. No official API access required.
 
@@ -20,31 +20,11 @@ Search profiles, send messages, find jobs and more in Python. No official API ac
 
 <h3 align="center">Sponsors</h3>
 
-<p align="center">
-<a href="https://bit.ly/4fUyE9J" target="_blank">
-    <img width="450px" src="https://raw.githubusercontent.com/tomquirk/linkedin-api/main/docs/assets/logos/scrapin-banner.png" alt="Scrapin">
-  </a>
-</p>
-
 <p align="center" dir="auto" >
-  <a href="https://bit.ly/3AFPGZd" target="_blank">
-    <img height="45px" src="https://raw.githubusercontent.com/tomquirk/linkedin-api/main/docs/assets/logos/proapis.png" alt="iScraper by ProAPIs">
-  </a>
-  <a href="https://bit.ly/3SWnB63" target="_blank">
-    <img height="45px" src="https://raw.githubusercontent.com/tomquirk/linkedin-api/main/docs/assets/logos/prospeo.png" alt="Prospeo">
-  </a>
-  <a href="https://bit.ly/3SRximo" target="_blank">
-    <img height="45px" src="https://raw.githubusercontent.com/tomquirk/linkedin-api/main/docs/assets/logos/proxycurl.png" alt="proxycurl">
-  </a>
-  <a href="https://bit.ly/3Mbksvd" target="_blank">
-    <img height="45px" src="https://raw.githubusercontent.com/tomquirk/linkedin-api/main/docs/assets/logos/lix.png" alt="Lix">
-  </a>
-  <a href="https://bit.ly/3WOIMrX" target="_blank">
-    <img  height="70px" src="https://raw.githubusercontent.com/tomquirk/linkedin-api/main/docs/assets/logos/unipile.png" alt="Unipile">
+  <a href="https://www.scrapin.io/?utm_campaign=influencer&utm_source=github&utm_medium=social&utm_content=scrapin-io" target="_blank">
+    <img  height="250px" src="https://raw.githubusercontent.com/scrapin-io/linkedin-api/main/docs/assets/logos/scrapin.png" alt="Scrapin">
   </a>
 </p>
-
-<p align="center"><a href="https://bit.ly/4cCjbIq" target="_blank">Become a sponsor</a></p>
 
 <br>
 
@@ -70,8 +50,16 @@ And more! [Read the docs](https://linkedin-api.readthedocs.io/en/latest/api.html
 ###
 
 ```bash
-pip3 install git+https://github.com/4erf/linkedin-api.git
+pip install linkedin-api
 ```
+
+Or, for bleeding edge:
+
+```bash
+pip install git+https://github.com/tomquirk/linkedin-api.git
+```
+
+### Quick Start
 
 > [!TIP]
 > See all API methods on the [docs](https://linkedin-api.readthedocs.io/en/latest/api.html).
@@ -99,73 +87,7 @@ connections = api.get_profile_connections('1234asc12304')
 > This is a sponsored section
 
 <h3>
-<a href="https://prospeo.io/api/linkedin-email-finder">
-Prospeo
-</a>
-</h3>
-
-Extract data and find verified emails in real-time with [Prospeo LinkedIn Email Finder API](https://prospeo.io/api/linkedin-email-finder).
-
-<details>
-  <summary>Learn more</summary>
-Submit a LinkedIn profile URL to our API and get:
-
-- Profile data extracted in real-time
-- Company data of the profile
-- Verified work email of the profile
-- Exclusive data points (gender, cleaned country code, time zone...)
-- One do-it-all request
-- Stable API, tested under high load
-
-Try it with 75 profiles. [Get your FREE API key now](https://prospeo.io/api/linkedin-email-finder).
-
-</details>
-
-<h3>
-<a href="https://nubela.co/proxycurl/?utm_campaign=influencer%20marketing&utm_source=github&utm_medium=social&utm_term=-&utm_content=tom%20quirk">
-Proxycurl
-</a>
-</h3>
-
-Scrape public LinkedIn profile data at scale with [Proxycurl APIs](https://nubela.co/proxycurl/?utm_campaign=influencer%20marketing&utm_source=github&utm_medium=social&utm_term=-&utm_content=tom%20quirk).
-
-<details>
-  <summary>Learn more</summary>
-  
-- Scraping Public profiles are battle tested in court in HiQ VS LinkedIn case.
-- GDPR, CCPA, SOC2 compliant
-- High rate limit - 300 requests/minute
-- Fast - APIs respond in ~2s
-- Fresh data - 88% of data is scraped real-time, other 12% are not older than 29 days
-- High accuracy
-- Tons of data points returned per profile
-
-Built for developers, by developers.
-
-</details>
-
-<h3>
-<a href="https://www.unipile.com/communication-api/messaging-api/linkedin-api/?utm_campaign=git%20tom%20quirk">
-Unipile
-</a>
-</h3>
-
-Full [LinkedIn API](https://www.unipile.com/communication-api/messaging-api/linkedin-api/?utm_campaign=git%20tom%20quirk): Connect Classic/Sales Navigator/Recruiter, synchronize real-time messaging, enrich data and build outreach sequences…
-
-<details>
-  <summary>Learn more</summary>
-  
-- Easily connect your users in the cloud with our white-label authentication (captcha solving, in-app validation, OTP, 2FA).
-- Real-time webhook for each message received, read status, invitation accepted, and more.
-- Data extraction: get profile, get company, get post, extract search results from Classic + Sales Navigator + Recruiter
-- Outreach sequences: send invitations, InMail, messages, and comment on posts…
-
-Test [all the features](https://www.unipile.com/communication-api/messaging-api/linkedin-api/?utm_campaign=git%20tom%20quirk) with our 7-day free trial.
-
-</details>
-
-<h3>
-<a href="https://bit.ly/4fUyE9J">
+<a href="https://www.scrapin.io/?utm_campaign=influencer&utm_source=github&utm_medium=social&utm_content=scrapin-io">
 ScrapIn
 </a>
 </h3>
@@ -185,30 +107,6 @@ Try it for free. [Get your API key now](https://bit.ly/4fUyE9J)
 
 </details>
 
-<h3>
-<a href="https://bit.ly/3AFPGZd">
-iScraper by ProAPIs, Inc.
-</a>
-</h3>
-
-Access high-quality, real-time LinkedIn data at scale with [iScraper API](https://bit.ly/3AFPGZd), offering unlimited scalability and unmatched accuracy.
-
-<details>
-
-<summary>Learn more</summary>
-
-- Real-time LinkedIn data scraping with unmatched accuracy
-- Hosted datasets with powerful Lucene search access
-- Designed for enterprise and corporate-level applications
-- Handles millions of scrapes per day, ensuring unlimited scalability
-- Trusted by top enterprises for mission-critical data needs
-- Interactive API documentation built on OpenAPI 3 specs for seamless integration
-- Backed by over 10 years of experience in real-time data provisioning
-- Lowest price guarantee for high volume use
-
-Get started [here](https://bit.ly/3AFPGZd).
-
-</details>
 
 > End sponsored section
 
@@ -365,7 +263,6 @@ It could be possible to document (and implement a nice interface for) this query
 
 1. Bump `version` in `pyproject.toml`
 1. `poetry build`
-1. `poetry publish -r test-pypi`
 1. `poetry publish`
 1. Draft release notes in GitHub.
 
