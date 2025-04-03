@@ -53,7 +53,6 @@ class Linkedin(object):
     )
     _MAX_SEARCH_RESULTS = 1000  # hard limit by linkedin API
 
-
     def __init__(
         self,
         username: str,
@@ -65,7 +64,7 @@ class Linkedin(object):
         proxies={},
         cookies=None,
         cookies_dir: str = "",
-        pool_size=1
+        challenge_prompt_enabled=False,
     ):
         """Constructor method"""
         self.client = Client(
@@ -73,7 +72,7 @@ class Linkedin(object):
             debug=debug,
             proxies=proxies,
             cookies_dir=cookies_dir,
-            pool_size=pool_size
+            challenge_prompt_enabled=challenge_prompt_enabled,
         )
         logging.basicConfig(level=logging.DEBUG if debug else logging.INFO)
         self.logger = logger
@@ -147,7 +146,11 @@ class Linkedin(object):
         if data and "status" in data and data["status"] != 200:
             self.logger.info("request failed: {}".format(data["message"]))
             return [{}]
-        while data and data["metadata"]["paginationToken"] != "":
+        while (
+            data
+            and "paginationToken" in data["metadata"]
+            and data["metadata"]["paginationToken"] != ""
+        ):
             if len(data["elements"]) >= post_count:
                 break
             pagination_token = data["metadata"]["paginationToken"]
@@ -183,7 +186,11 @@ class Linkedin(object):
         if data and "status" in data and data["status"] != 200:
             self.logger.info("request failed: {}".format(data["status"]))
             return [{}]
-        while data and data["metadata"]["paginationToken"] != "":
+        while (
+            data
+            and "paginationToken" in data["metadata"]
+            and data["metadata"]["paginationToken"] != ""
+        ):
             if len(data["elements"]) >= comment_count:
                 break
             pagination_token = data["metadata"]["paginationToken"]
@@ -195,7 +202,7 @@ class Linkedin(object):
                 self.logger.info("request failed: {}".format(data["status"]))
                 return [{}]
             data["metadata"] = res.json()["metadata"]
-            """ When the number of comments exceed total available 
+            """ When the number of comments exceed total available
             comments, the api starts returning an empty list of elements"""
             if res.json()["elements"] and len(res.json()["elements"]) == 0:
                 break
@@ -857,7 +864,7 @@ class Linkedin(object):
         return list(results.values())
 
     def get_profile_contact_info(
-            self, public_id: Optional[str] = None, urn_id: Optional[str] = None
+        self, public_id: Optional[str] = None, urn_id: Optional[str] = None
     ) -> Dict:
         """Fetch contact information for a given LinkedIn profile. Pass a [public_id] or a [urn_id].
 
@@ -942,6 +949,11 @@ class Linkedin(object):
         # NOTE this still works for now, but will probably eventually have to be converted to
         # https://www.linkedin.com/voyager/api/identity/profiles/ACoAAAKT9JQBsH7LwKaE9Myay9WcX8OVGuDq9Uw
         res = self._fetch(f"/identity/profiles/{public_id or urn_id}/profileView")
+        if res.status_code != 200:
+            self.logger.info("request failed [status={}]".format(res.status_code))
+            raise Exception(
+                "Request failed: get_profile. Try refreshing cookies or solving challenge in a browser."
+            )
 
         data = res.json()
         if data and "status" in data and data["status"] != 200:
@@ -1176,7 +1188,21 @@ class Linkedin(object):
         data = res.json()
 
         items = []
-        for item in data["included"][0]["components"]["elements"]:
+
+        # Find the index with the most items
+        # When dealing with grouped experiences (e.g. multiple positions at the same company),
+        # the API response will contain multiple indexes in data["included"].
+        # The index with the most elements will contain all experiences, both grouped and individual,
+        # while other indexes may only contain partial data for the grouped experiences.
+        # Therefore, we want to use the index with the most items to ensure we process all experiences.
+        max_items_index = max(
+            range(len(data["included"])),
+            key=lambda i: len(
+                data["included"][i].get("components", {}).get("elements", [])
+            ),
+        )
+
+        for item in data["included"][max_items_index]["components"]["elements"]:
             grouped_item_id = get_grouped_item_id(item)
             # if the item is part of a group (e.g. a company with multiple positions),
             # find the group items and parse them.
@@ -1401,7 +1427,7 @@ class Linkedin(object):
             f"/feed/dash/followingStates/{following_state_urn}", data=payload
         )
 
-        return res.status_code != 200
+        return res.status_code != 201
 
     def get_conversation_details(self, profile_urn_id):
         """Fetch conversation (message thread) details for a given LinkedIn profile.
@@ -1916,7 +1942,7 @@ class Linkedin(object):
             "count": 10,
             "q": "reactionType",
             "start": len(results),
-            "threadUrn": urn_id,
+            "threadUrn": f"urn:li:activity:{urn_id}",
         }
 
         res = self._fetch("/voyagerSocialDashReactions", params=params)
